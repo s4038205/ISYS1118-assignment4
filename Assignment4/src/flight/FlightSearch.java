@@ -32,7 +32,8 @@ public class FlightSearch {
    // https://howtodoinjava.com/java/date-time/resolverstyle-strict-date-parsing/
    // Condition 7. All dates must be formatted in the format DD/MM/YYYY eg "23/11/2025" and must be validated to ensure that the combination is correct
    // (eg "29/02/2026" would be invalid as 2026 is not a leap year). Ensure that STRICT date validation is applied.
-   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy").withResolverStyle(ResolverStyle.STRICT);
+   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
+   //private static DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/uuuu");
 
 
    // https://www.codecademy.com/resources/docs/java/set
@@ -50,39 +51,40 @@ public class FlightSearch {
                                   int adultPassengerCount, int childPassengerCount,       int infantPassengerCount) {
       
 	  boolean valid = true;
+	  System.out.println("\nNew Test: ");
 	   
       // Condition 1. The total number of passenger per search must be at least 1 and cannot exceed 9.
       int totalPassengers = adultPassengerCount + childPassengerCount + infantPassengerCount; // Creating a variable to count all passengers
       if (totalPassengers < 1 || totalPassengers > 9) {
-    	 //System.out.println("Condition 1: Returning False");
+    	 System.out.println("Condition 1: Returning False");
          return false;
-      } //System.out.println("Condition 1: Returning True");
+      } System.out.println("Condition 1: Returning True");
 
       // Condition 2. Children cannot be seated in emergency row seating or first class.
-      if (emergencyRowSeating && seatingClass.equals("first")) 
+      if (emergencyRowSeating && childPassengerCount > 0 || seatingClass.equals("first") && childPassengerCount > 0) 
       {
-    	 //System.out.println("Condition 2: Returning False");
+    	 System.out.println("Condition 2: Returning False");
     	  return false;
-      } //System.out.println("Condition 2: Returning True");
+      } System.out.println("Condition 2: Returning True");
 
       // Condition 3. Infants cannot be seated in emergency row seating or business class.
-      if (emergencyRowSeating && (seatingClass.equals("business") || seatingClass.equals("first"))) {
-    	  //System.out.println("Condition 3: Returning False");
+      if (emergencyRowSeating && infantPassengerCount > 0 || infantPassengerCount > 0 && (seatingClass.equals("business") || seatingClass.equals("first"))) {
+    	  System.out.println("Condition 3: Returning False");
     	  return false;
-      } //System.out.println("Condition 3: Returning True");
+      } System.out.println("Condition 3: Returning True");
 
       // Condition 4. All children (aged 2-11 years old) must be seated immediately next to at least one adult passenger (ie up to 2 children per adult).
       // eg if the adult passenger count is 2, then up to 4 child passengers are allowed.
       if (childPassengerCount > adultPassengerCount * 2) {
-    	 //System.out.println("Condition 4: Returning False \n");
+    	 System.out.println("Condition 4: Returning False ");
     	 return false;
-      }	//System.out.println("Condition 4: Returning True \n");
+      }	System.out.println("Condition 4: Returning True ");
 
       // Condition 5. Each infant (<2 years old) must be seated on an accompanying adults lap (only one infant is allowed per adult)
       if (infantPassengerCount > adultPassengerCount) {
-    	  //System.out.println("Condition 5: Returning False");
+    	  System.out.println("Condition 5: Returning False");
     	  return false;
-      } //System.out.println("Condition 5: Returning True");
+      } System.out.println("Condition 5: Returning True");
 
       // Condition 6. The departure date cannot be in the past (this is based on the current date when runFlightSearch method is called).
       LocalDate today = LocalDate.now(); // assigning a variable today to the current time through LocalDate
@@ -90,11 +92,13 @@ public class FlightSearch {
       try { // parsing the departure date in strict mode and ensuring it is today or later.
          departDate = LocalDate.parse(departureDate, DATE_FMT); // https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html
       } catch (DateTimeParseException e) {
-         return false; // if there's a parsing error return false
+    	 System.out.println("Condition 6: Parse Error");
+         return false; // if there's a parsing error return false     
       }
       if (departDate.isBefore(today)) { // if the date is before today's date return false
+    	 System.out.println("Condition 6: Dep date is before today");
          return false;
-      }
+      } System.out.println("Condition 6: Returning True");
 
       // Condition 8. All flights are two way only (ie include return flights) and the return date cannot be before departure date.
       // If no return date is supplied return false
@@ -106,28 +110,33 @@ public class FlightSearch {
       try {
          retDate = LocalDate.parse(returnDate, DATE_FMT);
       } catch (DateTimeParseException e) {
+    	 System.out.println("Condition 8: Returning False");
          return false;
       }
       if (retDate.isBefore(departDate)) {
+    	 System.out.println("Condition 8: Returning False");
          return false;
-      }
+      }System.out.println("Condition 8: Returning True");
 
       // Condition 9. The seating class must be one of ("economy', "premium economy", "business", "first").
       if (!VALID_SEATING_CLASSES.contains(seatingClass)) { //If there is no valid seating class selected return false
+    	  System.out.println("Condition 9: Returning False");
          return false;
-      }
+      } System.out.println("Condition 9: Returning True");
 
       //Condition 10. Only economy class seating can have an emergency row (all classes of seating can be non-emergency).
       if (emergencyRowSeating && !seatingClass.equals("economy")) {
+    	 System.out.println("Condition 10: Returning False");
          return false;
-      }
+      } System.out.println("Condition 10: Returning True");
 
       // Condition 11. Only the following airports are available: "syd" (Sydney), "mel" (Melbourne), "lax" (Los Angeles), "cdg" (Paris), "del" (Delhi), "pvg" (Shanghai) and "doh" (Doha).
       // eg for a flight from Melbourne to Shanghai, the departure airport code would be "mel" and the destination airport code would be "pvg".
       // Furthermore, the departure airport and destination airport cannot be the same.
       if (!VALID_AIRPORTS.contains(departureAirportCode) || !VALID_AIRPORTS.contains(destinationAirportCode) || departureAirportCode.equals(destinationAirportCode)) {
-         return false; // If the dest. code matches departure code or if its not a valid airport return false
-      }
+    	 System.out.println("Condition 11: Returning False");
+    	 return false; // If the dest. code matches departure code or if its not a valid airport return false
+      } System.out.println("Condition 11: Returning True");
 
       // Adding constructor parameters for each attribute to the class
       this.departureDate = departureDate;
